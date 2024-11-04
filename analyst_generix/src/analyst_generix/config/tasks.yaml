@@ -1,28 +1,72 @@
-write_query:
-  name: "Write Database Query"
-  description: >
-    Write a simple, lightweight query to explore the database structure for {database_name}.
-    Use information_schema views to get basic metadata about the database.
-    Focus on getting table names and basic statistics that won't require
-    full table scans or heavy computations.
-    
-    The query should focus on:
-    1. Table names and row counts from information_schema
-    2. Basic schema information for database {database_name}
-    3. Avoid any full table scans or complex joins
-  expected_output: "A single SQL query that explores database structure using information_schema for {database_name}"
+# tasks.yaml
 
-review_query:
-  name: "Review and Execute Query"
+write_queries:
+  name: "Generate List of Database Queries"
   description: >
-    Review the provided query and analyze its potential cost and impact.
-    Verify that it only uses system views and metadata tables for database {database_name}.
-    
-    If the query is approved:
-    1. Use the MySQL Query Tool to execute it
-    2. Return the results along with your analysis
-    
-    If not approved:
-    1. Explain why it's too expensive
-    2. Suggest modifications to make it more efficient
-  expected_output: "Analysis of the query's efficiency and either approval with results or rejection with explanation"
+    Create a list of simple, lightweight SQL queries to explore the database structure for {database_name}.
+    For each query, provide a brief explanation of its goal.
+    The queries should focus on retrieving metadata and structural information about the database,
+    such as table names, column details, keys, indexes, and relationships.
+    Avoid any queries that would require full table scans or heavy computations.
+
+    The queries should cover aspects needed to produce a comprehensive database overview, including:
+    - Listing all tables and their purposes.
+    - Retrieving column details for each table.
+    - Identifying primary and foreign keys.
+    - Understanding relationships between tables.
+    - Gathering information on indexes and constraints.
+    - Any other structural information relevant to understanding the database.
+
+  expected_output: >
+    A list of SQL queries, each accompanied by a brief description of its goal.
+    The queries should be efficient and suitable for execution without causing significant load on the database.
+
+review_and_execute_queries:
+  name: "Review, Modify if Needed, and Execute Queries"
+  description: >
+    For each query provided by the query_writer, perform the following steps individually:
+    1. Review the query to assess its potential cost and impact.
+    2. Determine if the query is cost-efficient and safe to run.
+    3. If approved, execute the query and collect the results.
+    4. If not approved, modify the query to make it more efficient while achieving the same goal, then execute it.
+    5. Document any modifications made and the reasoning behind them.
+
+    Ensure that each query focuses on retrieving metadata or structural information, and does not perform heavy operations on large data sets.
+
+  expected_output: >
+    For each query:
+    - An assessment of the query's efficiency and safety.
+    - The executed query (original or modified).
+    - The results of the query.
+    - Any notes on modifications made.
+
+document_database:
+  name: "Document Database Structure and Contents"
+  description: >
+    Using only the data obtained from the query results, create a comprehensive, plain English overview of the {database_name} database.
+    The document should follow the structure of the ideal report provided, including the following sections:
+
+    1. **Executive Summary**
+    2. **Introduction**
+    3. **Database Overview**
+    4. **Data Model and Schema Diagrams** (if possible with the data)
+    5. **Table Descriptions**
+    6. **Field (Column) Descriptions**
+    7. **Data Relationships and Keys**
+    8. **Data Access Instructions** (if applicable)
+    9. **Sample Queries** (using the executed queries)
+    10. **Indexes and Performance Tips** (based on index information)
+    11. **Data Dictionary**
+    12. **Data Security and Compliance** (if information is available)
+    13. **Appendices** (e.g., sample data sets if available)
+
+    **Guidelines:**
+    - Describe only the data obtained from the query results.
+    - Do not make assumptions or include external information.
+    - Use clear and simple language suitable for non-technical readers.
+    - Organize the document logically, using headings and subheadings.
+    - Provide examples and explanations where helpful.
+
+  expected_output: >
+    A well-structured, plain English document in Markdown format that provides an overview of the database, based solely on the query results.
+    The document should help analysts and other stakeholders understand the database's structure and contents.

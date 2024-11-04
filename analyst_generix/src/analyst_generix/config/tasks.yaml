@@ -1,21 +1,28 @@
-write_query_task:
+write_query:
+  name: "Write Database Query"
   description: >
-    Write a simple, lightweight query to explore the database structure.
+    Write a simple, lightweight query to explore the database structure for {database_name}.
     Use information_schema views to get basic metadata about the database.
     Focus on getting table names and basic statistics that won't require
     full table scans or heavy computations.
-  expected_output: >
-    A single SQL query that explores database structure using information_schema
-    or similar system views. The query should be simple and efficient.
-  agent: query_writer
+    
+    The query should focus on:
+    1. Table names and row counts from information_schema
+    2. Basic schema information for database {database_name}
+    3. Avoid any full table scans or complex joins
+  expected_output: "A single SQL query that explores database structure using information_schema for {database_name}"
 
-review_query_task:
+review_query:
+  name: "Review and Execute Query"
   description: >
     Review the provided query and analyze its potential cost and impact.
-    Verify that it only uses system views and metadata tables.
-    If approved, execute the query using the MySQL tool.
-    If not approved, provide feedback on why it's too expensive.
-  expected_output: >
-    Analysis of the query's efficiency and either approval with results
-    or rejection with explanation.
-  agent: query_reviewer
+    Verify that it only uses system views and metadata tables for database {database_name}.
+    
+    If the query is approved:
+    1. Use the MySQL Query Tool to execute it
+    2. Return the results along with your analysis
+    
+    If not approved:
+    1. Explain why it's too expensive
+    2. Suggest modifications to make it more efficient
+  expected_output: "Analysis of the query's efficiency and either approval with results or rejection with explanation"

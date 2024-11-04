@@ -6,31 +6,33 @@ def main():
     try:
         # Find and load .env file
         env_path = find_dotenv()
-        print(f"Found .env file at: {env_path}")
-        
-        # Load environment variables
+        print(f"Loading .env from: {env_path}")
         load_dotenv(env_path, override=True)
         
         # Debug environment variables
         openai_key = os.getenv("OPENAI_API_KEY")
-        mysql_conn = os.getenv("MYSQL_CONNECTION_STRING")
+        database_name = os.getenv("MYSQL_DATABASE_NAME")
         
         print("\n=== Environment Variables ===")
-        print(f"OpenAI API Key present: {'Yes' if openai_key else 'No'}")
         if openai_key:
-            print(f"OpenAI API Key length: {len(openai_key)}")
-            print(f"OpenAI API Key starts with: {openai_key[:10]}...")
-            print(f"OpenAI API Key ends with: ...{openai_key[-10:]}")
-        print(f"MySQL Connection present: {'Yes' if mysql_conn else 'No'}")
-        
+            print(f"OpenAI API Key found (length: {len(openai_key)})")
+            print(f"Key starts with: {openai_key[:10]}...")
+        else:
+            print("WARNING: OpenAI API Key not found!")
+            
+        if database_name:
+            print(f"Database name: {database_name}")
+        else:
+            print("WARNING: Database name not found!")
+            
         if not openai_key:
             raise ValueError("OPENAI_API_KEY not found in environment variables")
-        if openai_key.startswith("your_") or "your_" in openai_key:
-            raise ValueError("OPENAI_API_KEY appears to be a placeholder value")
             
-        # Initialize and run the crew
-        crew = AnalystCrew()
-        result = crew.run_analysis()
+        # Set up inputs
+        inputs = {"database_name": database_name}
+        
+        # Run the crew
+        result = AnalystCrew().crew().kickoff(inputs=inputs)
         
         print("\n=== Analysis Results ===")
         print(result)

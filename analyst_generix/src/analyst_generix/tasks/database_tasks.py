@@ -5,17 +5,17 @@ class DatabaseTasks:
     def create_write_query_task(agent):
         return Task(
             name="Write Database Query",
-            description="""Write a simple, lightweight query to explore the database structure.
+            description="""Write a simple, lightweight query to explore the database structure for {database_name}.
             Use information_schema views to get basic metadata about the database.
             Focus on getting table names and basic statistics that won't require
             full table scans or heavy computations.
             
             The query should focus on:
             1. Table names and row counts from information_schema
-            2. Basic schema information
+            2. Basic schema information for database {database_name}
             3. Avoid any full table scans or complex joins""",
             agent=agent,
-            expected_output="A single SQL query that explores database structure using information_schema or similar system views",
+            expected_output="A single SQL query that explores database structure using information_schema for {database_name}",
             tools=[],
             async_execution=False,
         )
@@ -25,7 +25,7 @@ class DatabaseTasks:
         return Task(
             name="Review and Execute Query",
             description="""Review the provided query and analyze its potential cost and impact.
-            Verify that it only uses system views and metadata tables.
+            Verify that it only uses system views and metadata tables for database {database_name}.
             
             If the query is approved:
             1. Use the MySQL Query Tool to execute it

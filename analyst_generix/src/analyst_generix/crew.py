@@ -1,52 +1,62 @@
-from crewai import Crew, Process
-from analyst_generix.agents.database_agents import DatabaseAgents
-from analyst_generix.tasks.database_tasks import DatabaseTasks
+from crewai import Agent, Crew, Process, Task
+from crewai.project import CrewBase, agent, crew, task
+from analyst_generix.tools.mysql_tools import MySQLQueryTool
+import yaml
 import os
 
+@CrewBase
 class AnalystCrew:
+    """Database Analysis crew"""
+    # Get the current directory path
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    
+    # Set config paths relative to current file
+    agents_config = os.path.join(base_path, 'config', 'agents.yaml')
+    tasks_config = os.path.join(base_path, 'config', 'tasks.yaml')
+
     def __init__(self):
-        # Debug environment variables in crew
-        print("\n=== Crew Initialization ===")
-        openai_key = os.getenv("OPENAI_API_KEY")
-        mysql_conn = os.getenv("MYSQL_CONNECTION_STRING")
-        
-        print(f"OpenAI API Key in crew: {'Present' if openai_key else 'Missing'}")
-        print(f"MySQL Connection in crew: {'Present' if mysql_conn else 'Missing'}")
-        
-        if not os.getenv("MYSQL_CONNECTION_STRING"):
-            raise ValueError("MYSQL_CONNECTION_STRING environment variable is required")
-        
-        # Initialize agents
-        self.db_agents = DatabaseAgents()
-        
-    def run_analysis(self):
-        try:
-            print("\n=== Creating Agents ===")
-            # Create agents
-            query_writer = self.db_agents.create_query_writer()
-            query_reviewer = self.db_agents.create_query_reviewer()
-            
-            print("\n=== Creating Tasks ===")
-            # Create tasks
-            tasks = DatabaseTasks()
-            write_task = tasks.create_write_query_task(query_writer)
-            review_task = tasks.create_review_query_task(query_reviewer)
-            
-            print("\n=== Setting up Crew ===")
-            # Create and run crew
-            crew = Crew(
-                agents=[query_writer, query_reviewer],
-                tasks=[write_task, review_task],
-                process=Process.sequential,
-                verbose=True
-            )
-            
-            print("\n=== Starting Crew Execution ===")
-            # Run the crew and return results
-            return crew.kickoff()
-            
-        except Exception as e:
-            print(f"\n=== Crew Error Details ===")
-            print(f"Error type: {type(e).__name__}")
-            print(f"Error message: {str(e)}")
-            raise
+        super().__init__()
+        self.mysql_tool = MySQLQueryTool()
+
+    @agent
+    def query_writer(self) -> Agent:
+        return Agent(
+            config=self.agents_config['query_writer'],
+            tools=[],
+            verbose=True,
+            memory=False
+        )
+
+    @agent
+    def query_reviewer(self) -> Agent:
+        return Agent(
+            config=self.agents_config['query_reviewer'],
+            tools=[self.mysql_tool],
+            verbose=True,
+            memory=False
+        )
+
+    @task
+    def write_query_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['write_query'],
+            agent=self.query_writer()
+        )
+
+    @task
+    def review_query_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['review_query'],
+            agent=self.query_reviewer(),
+            context=[self.write_query_task()]
+        )
+
+    @crew
+    def crew(self) -> Crew:
+        """Creates the Database Analysis crew"""
+        return Crew(
+            agents=self.agents,  # Automatically created by the @agent decorator
+            tasks=self.tasks,    # Automatically created by the @task decorator
+            process=Process.sequential,
+            verbose=True
+        )

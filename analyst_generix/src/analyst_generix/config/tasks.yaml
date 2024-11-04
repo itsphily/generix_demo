@@ -1,0 +1,21 @@
+write_query_task:
+  description: >
+    Write a simple, lightweight query to explore the database structure.
+    Use information_schema views to get basic metadata about the database.
+    Focus on getting table names and basic statistics that won't require
+    full table scans or heavy computations.
+  expected_output: >
+    A single SQL query that explores database structure using information_schema
+    or similar system views. The query should be simple and efficient.
+  agent: query_writer
+
+review_query_task:
+  description: >
+    Review the provided query and analyze its potential cost and impact.
+    Verify that it only uses system views and metadata tables.
+    If approved, execute the query using the MySQL tool.
+    If not approved, provide feedback on why it's too expensive.
+  expected_output: >
+    Analysis of the query's efficiency and either approval with results
+    or rejection with explanation.
+  agent: query_reviewer
